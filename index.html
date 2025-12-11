@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Varsi Kirana — Customer + Admin (Premium)</title>
+<link rel="icon" href="" />
+<style>
+:root{
+  --accent:#0b7cff;
+  --whatsapp:#25D366;
+  --card:#ffffff;
+  --bg:#f4f7fb;
+  --muted:#6b7280;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; background:linear-gradient(180deg,#f8fbff,#f4f7fb); color:#0f172a; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+.app{max-width:920px;margin:12px auto;padding:14px}
+.header{
+  display:flex;gap:12px;align-items:center;padding:12px;border-radius:18px;background:linear-gradient(180deg,#fff,#f8fbff);box-shadow:0 6px 20px rgba(11,84,150,0.06);
+}
+.logo{
+  width:92px;height:92px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;
+  box-shadow:0 6px 14px rgba(11,84,150,0.06);
+}
+.logo img{width:88px;height:88px;object-fit:contain;display:block}
+.shopTitle h1{margin:0;font-size:20px;letter-spacing:0.2px}
+.shopTitle p{margin:6px 0 0;color:var(--muted);font-size:13px}
+.controls{margin-left:auto;display:flex;gap:8px;align-items:center}
+.iconBtn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;font-weight:700;color:var(--accent)}
+.card{background:var(--card);border-radius:14px;padding:12px;margin-top:12px;box-shadow:0 6px 18px rgba(11,84,150,0.04)}
+.row{display:flex;gap:8px;align-items:center}
+.input{width:100%;padding:10px;border-radius:10px;border:1px solid #eef2ff;background:transparent}
+.btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:0;font-weight:700}
+.ghost{background:transparent;border:1px solid rgba(11,124,255,0.12);color:var(--accent)}
+.small{font-size:13px;color:var(--muted)}
+.catalog{margin-top:8px}
+.categoryCard{background:linear-gradient(180deg,#fff,#fbfdff);padding:10px;border-radius:12px;margin-bottom:10px;border:1px solid #f0f6ff}
+.catHeader{display:flex;justify-content:space-between;align-items:center;padding:6px 2px;cursor:pointer}
+.items{padding-top:8px;display:none}
+.itemRow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #fbfbfb}
+.itemLeft{display:flex;flex-direction:column}
+.itemName{font-weight:700}
+.itemStock{font-size:13px;color:#4b5563;margin-top:4px}
+.itemRight{text-align:right;min-width:220px}
+.price{font-size:14px;color:#0b1730}
+.qtybox{display:flex;gap:6px;margin-top:8px;justify-content:flex-end}
+.qtybox input{width:78px;padding:8px;border-radius:8px;border:1px solid #eef2ff;background:transparent;text-align:right}
+.totalBar{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:12px;margin-top:12px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid #f0f6ff}
+.totalText{font-weight:800;font-size:18px}
+.actions{display:flex;gap:8px}
+.adminTiny{font-size:12px;color:rgba(0,0,0,0.18);text-align:right;padding-top:8px;cursor:pointer}
+.adminPanel{display:none;margin-top:12px}
+.adminGrid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:900px){.adminGrid{grid-template-columns:1fr 360px}}
+.table{width:100%;border-collapse:collapse}
+.table input{padding:8px;border-radius:8px;border:1px solid #eef2ff;width:100%}
+.actionsWrap{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.footer{margin-top:18px;text-align:center;color:#475569;font-size:13px;padding-bottom:30px}
+
+/* modal overlay */
+.overlay{position:fixed;inset:0;background:rgba(2,6,23,0.45);display:flex;align-items:center;justify-content:center;z-index:9999}
+.modal{background:#fff;padding:16px;border-radius:12px;max-width:420px;width:92%}
+
+/* subtle animation */
+.fadeIn{animation:fadeIn .28s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* small helpers */
+.linkish{color:var(--accent);text-decoration:underline;cursor:pointer;font-weight:600}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header fadeIn">
+    <div class="logo" id="logoBox" title="Double-tap for admin">
+      <img id="logoImg" src="Varsi_kirana.png" alt="Varsi Kirana">
+    </div>
+    <div class="shopTitle">
+      <h1 id="shopName">Varsi General Store</h1>
+      <p id="shopTag">Scan / choose → Add to cart → WhatsApp order</p>
+    </div>
+    <div class="controls">
+      <button id="darkToggle" class="iconBtn" title="Toggle dark (not persistent)">🌓</button>
+    </div>
+  </div>
+
+  <!-- Customer UI -->
+  <section class="card fadeIn" id="customer">
+    <div class="row" style="gap:10px">
+      <input id="custName" class="input" placeholder="Customer name (optional)">
+      <input id="custPhone" class="input" placeholder="Mobile number (optional)">
+    </div>
+
+    <div id="catalogRoot" class="catalog"></div>
+
+    <div class="totalBar">
+      <div class="totalText" id="total">Total: ₹0.00</div>
+      <div class="actions">
+        <button id="whatsBtn" class="btn">Place Order (WhatsApp)</button>
+        <button id="invoiceBtn" class="btn ghost">Print Invoice</button>
+        <button id="downloadBtn" class="btn ghost">CSV</button>
+      </div>
+    </div>
+
+    <div class="adminTiny" id="adminTiny">Admin</div>
+  </section>
+
+  <!-- Admin Panel -->
+  <section class="adminPanel card" id="adminPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><strong>Admin Panel</strong> <div class="small">Local-only · PIN protected</div></div>
+      <div><button id="signOutBtn" class="btn ghost">Close</button></div>
+    </div>
+
+    <div class="adminGrid">
+      <div>
+        <div style="margin-top:10px">
+          <div class="small">Shop phone (country code, no +)</div>
+          <input id="shopPhone" class="input" placeholder="eg. 919876543237">
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="small">Upload logo (phone/computer)</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="logoFile" type="file" accept="image/*">
+            <button id="logoClear" class="btn ghost">Remove</button>
+          </div>
+          <div style="margin-top:8px"><img id="logoPreview" src="" alt="logo" style="width:80px;height:80px;border-radius:10px;object-fit:cover;display:none"></div>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="small">Google Form action URL (optional)</div>
+          <input id="gformURL" class="input" placeholder="Optional: form action (for sheet)">
+        </div>
+
+        <div class="actionsWrap">
+          <button id="saveSettings" class="btn">Save</button>
+          <button id="exportJSON" class="btn ghost">Export JSON</button>
+          <button id="importJSON" class="btn ghost">Import JSON</button>
+          <button id="clearLocal" class="btn ghost">Clear Local</button>
+        </div>
+
+        <div class="note">Tip: Use export/import to move catalog between devices.</div>
+      </div>
+
+      <div>
+        <h3 style="margin:6px 0">Catalog — Add item</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="new_cat" class="input" placeholder="Category (e.g. Daal)">
+          <input id="new_name" class="input" placeholder="Item name">
+          <input id="new_price" class="input" placeholder="Price (per kg)" style="width:120px">
+          <input id="new_unit" class="input" placeholder="Unit (kg/packet/ltr)" style="width:120px">
+          <input id="new_stock" class="input" placeholder="Stock (number)" style="width:100px">
+          <button id="addItem" class="btn">Add</button>
+        </div>
+
+        <div id="catalogTable" style="margin-top:10px;overflow:auto;max-height:360px"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer small">Made for Varsi Kirana — Premium mobile UI</div>
+</div>
+
+<!-- PIN modal -->
+<div id="pinOverlay" class="overlay hide" aria-hidden="true">
+  <div class="modal">
+    <h3>Admin Login</h3>
+    <div class="small">Enter admin PIN</div>
+    <input id="pinInput" class="input" placeholder="PIN" style="margin-top:10px">
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+      <button id="pinCancel" class="btn ghost">Cancel</button>
+      <button id="pinOk" class="btn">Open</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========= Config ========= */
+const ADMIN_PIN = '70725';                 // admin PIN
+const WHATSAPP_NUMBER = '917777943237';    // with country code
+const KEYS = {
+  CATALOG: 'vg_catalog',
+  SHOPPHONE: 'vg_shopphone',
+  LOGO: 'vg_logo',
+  SHOPNAME: 'vg_shopname',
+  GFORM: 'vg_gform',
+  PINSET: 'v_admin_pin'
+};
+
+/* ========= State helpers ========= */
+let catalog = [];
+function saveCatalog(){ localStorage.setItem(KEYS.CATALOG, JSON.stringify(catalog)); }
+function loadCatalog(){ try{ const s = localStorage.getItem(KEYS.CATALOG); catalog = s? JSON.parse(s): defaultCatalog(); }catch(e){ catalog = defaultCatalog(); } }
+function defaultCatalog(){ return [
+  {id:'tuvar',cat:'Daal',name:'Tuvar Dal',price:120,unit:'kg',stock:20},
+  {id:'moong',cat:'Daal',name:'Moong Dal',price:140,unit:'kg',stock:15},
+  {id:'masoor',cat:'Daal',name:'Masoor Dal',price:95,unit:'kg',stock:18},
+  {id:'besan',cat:'Atta',name:'Besan',price:45,unit:'kg',stock:10},
+  {id:'kolam',cat:'Rice',name:'Kolam Rice',price:55,unit:'kg',stock:30},
+  {id:'pamoline',cat:'Oil',name:'Pamoline Oil',price:80,unit:'ltr',stock:40}
+]; }
+function uid(n){ return (n.replace(/\s+/g,'_').toLowerCase()+'_'+Date.now()).slice(0,40); }
+
+/* ========= Render Customer Catalog ========= */
+function groupBy(arr,key){ return arr.reduce((acc,i)=>{ (acc[i[key]] = acc[i[key]]||[]).push(i); return acc; }, {}); }
+
+function renderCustomerCatalog(){
+  const root = document.getElementById('catalogRoot'); root.innerHTML = '';
+  const grouped = groupBy(catalog,'cat');
+  for(const cat of Object.keys(grouped)){
+    const wrapper = document.createElement('div'); wrapper.className='categoryCard';
+    wrapper.innerHTML = `<div class="catHeader"><div><strong>${cat}</strong></div><div class="small">Tap to expand</div></div><div class="items" id="items-${cat.replace(/\s+/g,'_')}"></div>`;
+    root.appendChild(wrapper);
+    const itemsDiv = wrapper.querySelector('.items');
+    grouped[cat].forEach(p=>{
+      const row = document.createElement('div'); row.className='itemRow';
+      row.innerHTML = `<div class="itemLeft"><div class="itemName">${p.name}</div><div class="itemStock" id="stock-${p.id}">Stock: ${p.stock===null?'—':p.stock} ${p.unit}</div></div>
+        <div class="itemRight"><div class="price">₹${p.price}/${p.unit}</div>
+        <div class="qtybox">
+          <input class="qtykg" data-id="${p.id}" data-price="${p.price}" placeholder="kg" type="number" min="0" step="any">
+          <input class="qtygm" data-id="${p.id}" data-price="${p.price}" placeholder="gm" type="number" min="0" step="any">
+        </div></div>`;
+      itemsDiv.appendChild(row);
+    });
+    // toggle expand
+    wrapper.querySelector('.catHeader').addEventListener('click', ()=> {
+      itemsDiv.style.display = itemsDiv.style.display === 'block' ? 'none' : 'block';
+    });
+  }
+  attachQtyListeners();
+}
+
+function attachQtyListeners(){ document.querySelectorAll('.qtykg, .qtygm').forEach(i=> i.addEventListener('input', ()=>{ updateTotal(); updateStockIndicators(); })); }
+
+function updateTotal(){
+  let total = 0;
+  document.querySelectorAll('.qtykg').forEach(kg=>{
+    const id = kg.dataset.id; const gm = document.querySelector(`.qtygm[data-id="${id}"]`);
+    const kgVal = parseFloat(kg.value) || 0; const gmVal = parseFloat(gm.value) || 0;
+    const weightKg = kgVal + (gmVal/1000); const price = parseFloat(kg.dataset.price)||0;
+    total += weightKg * price;
+  });
+  document.getElementById('total').innerText = `Total: ₹${(Math.round(total*100)/100).toFixed(2)}`;
+}
+
+function updateStockIndicators(){
+  document.querySelectorAll('.qtykg').forEach(kg=>{
+    const id = kg.dataset.id; const gm = document.querySelector(`.qtygm[data-id="${id}"]`);
+    const need = (parseFloat(kg.value)||0) + ((parseFloat(gm.value)||0)/1000);
+    const p = catalog.find(x=>x.id===id);
+    const el = document.getElementById('stock-'+id);
+    if(p && p.stock!==null && need>p.stock){ el.style.color='orange'; el.textContent = `Only ${p.stock} ${p.unit} left`; } else { el.style.color='#334155'; el.textContent = `Stock: ${p.stock===null?'—':p.stock} ${p.unit}`; }
+  });
+}
+
+/* ========= Build Order ========= */
+function buildOrder(){
+  const name = document.getElementById('custName').value||'';
+  const phone = document.getElementById('custPhone').value||'';
+  const items = []; let total=0;
+  document.querySelectorAll('.qtykg').forEach(kg=>{
+    const id = kg.dataset.id; const gm = document.querySelector(`.qtygm[data-id="${id}"]`);
+    const weight = Math.round(((parseFloat(kg.value)||0) + ((parseFloat(gm.value)||0)/1000))*1000)/1000;
+    if(weight>0){
+      const price = parseFloat(kg.dataset.price)||0;
+      const p = catalog.find(x=>x.id===id) || {name:kg.dataset.id};
+      const line = Math.round(weight * price * 100)/100;
+      items.push({id:id,name:p.name,weightKg:weight,price:price,line:line});
+      total += line;
+    }
+  });
+  total = Math.round(total*100)/100;
+  return {name,phone,items,total};
+}
+
+/* ========= Buttons: WhatsApp / Invoice / CSV ========= */
+document.getElementById('whatsBtn').addEventListener('click', ()=>{
+  const order = buildOrder();
+  if(order.items.length===0){ alert('Please add items'); return; }
+  const shopPhone = localStorage.getItem(KEYS.SHOPPHONE) || WHATSAPP_NUMBER;
+  let text = `${document.getElementById('shopName').innerText}\nNew Order\n\nCustomer: ${order.name || '—'}\nPhone: ${order.phone || '—'}\n\n`;
+  order.items.forEach(it=> text += `• ${it.name} — ${it.weightKg.toFixed(3)} kg × ₹${it.price} = ₹${it.line.toFixed(2)}\n`);
+  text += `\nTotal: ₹${order.total.toFixed(2)}`;
+  // open whatsapp
+  window.open(`https://wa.me/${shopPhone.replace('+','')}?text=${encodeURIComponent(text)}`, '_blank');
+});
+
+document.getElementById('invoiceBtn').addEventListener('click', ()=>{
+  const order = buildOrder(); if(order.items.length===0){ alert('No items'); return; }
+  const now = new Date();
+  let html = `<html><head><meta charset="utf-8"><title>Invoice</title><style>body{font-family:Arial;padding:12px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ddd;padding:6px}</style></head><body>`;
+  html += `<h2>${document.getElementById('shopName').innerText}</h2><div>${now.toLocaleString()}</div><div>Customer: ${order.name} | ${order.phone}</div>`;
+  html += `<table><thead><tr><th>Item</th><th>Qty(kg)</th><th>Price/kg</th><th>Line</th></tr></thead><tbody>`;
+  order.items.forEach(it=> html += `<tr><td>${it.name}</td><td>${it.weightKg.toFixed(3)}</td><td>₹${it.price}</td><td>₹${it.line.toFixed(2)}</td></tr>`);
+  html += `<tfoot><tr><td colspan="3" style="text-align:right"><strong>Total</strong></td><td>₹${order.total.toFixed(2)}</td></tr></tfoot></table></body></html>`;
+  const w = window.open('','_blank'); w.document.write(html); w.document.close(); w.print();
+});
+
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  const order = buildOrder(); if(order.items.length===0){ alert('No items'); return; }
+  const rows = [['Shop','Customer','Phone','Item','Qty(kg)','Price/kg','Line']];
+  order.items.forEach(it=> rows.push(['Varsi General Store', order.name, order.phone, it.name, it.weightKg.toFixed(3), it.price, it.line.toFixed(2)]));
+  const csv = rows.map(r=> r.map(c=> `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='order.csv'; a.click();
+});
+
+/* ========= Admin login / open logic ========= */
+const pinOverlay = document.getElementById('pinOverlay');
+const pinInput = document.getElementById('pinInput');
+document.getElementById('pinOk').addEventListener('click', ()=>{ if(pinInput.value.trim() === (localStorage.getItem(KEYS.PINSET) || ADMIN_PIN)){ openAdminUI(); closePin(); } else alert('Wrong PIN'); });
+document.getElementById('pinCancel').addEventListener('click', closePin);
+function openPin(){ pinOverlay.classList.remove('hide'); pinOverlay.setAttribute('aria-hidden','false'); pinInput.value=''; pinInput.focus(); }
+function closePin(){ pinOverlay.classList.add('hide'); pinOverlay.setAttribute('aria-hidden','true'); pinInput.value=''; }
+
+/* Hidden tiny admin button */
+document.getElementById('adminTiny').addEventListener('click', (e)=>{ e.preventDefault(); openPin(); });
+
+/* Double-tap logo detection */
+(function(){
+  let last = 0;
+  const logoBox = document.getElementById('logoBox');
+  logoBox.addEventListener('click', (ev)=>{
+    const now = Date.now();
+    if(now - last < 400){ // double-tap
+      openPin();
+    }
+    last = now;
+  });
+})();
+
+/* Secret URL param ?admin=PIN */
+(function(){
+  const params = new URLSearchParams(location.search);
+  const a = params.get('admin');
+  if(a && a === (localStorage.getItem(KEYS.PINSET) || ADMIN_PIN)){ // auto-open admin
+    setTimeout(()=> openAdminUI(), 300);
+  } else if(a && a==='open-pin'){
+    setTimeout(()=> openPin(),300);
+  }
+})();
+
+/* ========= Admin UI functions ========= */
+function openAdminUI(){
+  document.getElementById('adminPanel').style.display = 'block';
+  // set values
+  document.getElementById('shopPhone').value = localStorage.getItem(KEYS.SHOPPHONE) || '';
+  document.getElementById('gformURL').value = localStorage.getItem(KEYS.GFORM) || '';
+  const logoData = localStorage.getItem(KEYS.LOGO);
+  if(logoData){ document.getElementById('logoPreview').src = logoData; document.getElementById('logoPreview').style.display='block'; } else { document.getElementById('logoPreview').style.display='none'; }
+  renderAdminTable();
+}
+
+/* sign out */
+document.getElementById('signOutBtn').addEventListener('click', ()=>{ document.getElementById('adminPanel').style.display='none'; });
+
+/* logo upload */
+document.getElementById('logoFile').addEventListener('change', (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){ localStorage.setItem(KEYS.LOGO, ev.target.result); document.getElementById('logoPreview').src = ev.target.result; document.getElementById('logoPreview').style.display='block'; document.getElementById('logoImg').src = ev.target.result; };
+  reader.readAsDataURL(f);
+});
+document.getElementById('logoClear').addEventListener('click', ()=>{ localStorage.removeItem(KEYS.LOGO); document.getElementById('logoPreview').style.display='none'; document.getElementById('logoImg').src = 'Varsi_kirana.png'; });
+
+/* save settings */
+document.getElementById('saveSettings').addEventListener('click', ()=>{
+  localStorage.setItem(KEYS.SHOPPHONE, document.getElementById('shopPhone').value.trim());
+  localStorage.setItem(KEYS.GFORM, document.getElementById('gformURL').value.trim());
+  localStorage.setItem(KEYS.SHOPNAME, document.getElementById('shopName').innerText.trim());
+  saveCatalog();
+  alert('Saved locally. Customer view will use these settings.');
+});
+
+/* catalog admin: add item */
+document.getElementById('addItem').addEventListener('click', ()=>{
+  const cat = document.getElementById('new_cat').value.trim(); const name = document.getElementById('new_name').value.trim();
+  const price = parseFloat(document.getElementById('new_price').value) || 0; const unit = document.getElementById('new_unit').value.trim() || 'kg';
+  const stockVal = document.getElementById('new_stock').value.trim(); const stock = stockVal === '' ? null : (isNaN(Number(stockVal)) ? null : Number(stockVal));
+  if(!cat || !name){ alert('Category and name required'); return; }
+  const id = uid(name);
+  catalog.push({id:id,cat:cat,name:name,price:price,unit:unit,stock:stock});
+  renderAdminTable();
+});
+
+/* render admin catalog table */
+function renderAdminTable(){
+  const wrap = document.getElementById('catalogTable'); wrap.innerHTML='';
+  const tbl = document.createElement('table'); tbl.className='table';
+  let html = '<thead><tr><th>Category</th><th>Name</th><th>Price</th><th>Unit</th><th>Stock</th><th>Action</th></tr></thead><tbody>';
+  (catalog||[]).forEach((p,idx)=> html += `<tr>
+    <td><input data-idx="${idx}" data-field="cat" value="${escapeHtml(p.cat)}"></td>
+    <td><input data-idx="${idx}" data-field="name" value="${escapeHtml(p.name)}"></td>
+    <td><input data-idx="${idx}" data-field="price" value="${p.price}"></td>
+    <td><input data-idx="${idx}" data-field="unit" value="${escapeHtml(p.unit)}"></td>
+    <td><input data-idx="${idx}" data-field="stock" value="${p.stock===null?'':p.stock}"></td>
+    <td><button data-idx="${idx}" class="btn ghost delBtn">Delete</button></td>
+  </tr>`);
+  html += '</tbody>'; tbl.innerHTML = html; wrap.appendChild(tbl);
+  // listeners for edits
+  wrap.querySelectorAll('input[data-field]').forEach(inp=> inp.addEventListener('change', ()=>{ const idx=Number(inp.dataset.idx); const f=inp.dataset.field; let v=inp.value; if(f==='price') v = parseFloat(v) || 0; if(f==='stock') v = v.trim()==='' ? null : (isNaN(Number(v)) ? catalog[idx].stock : Number(v)); catalog[idx][f] = v; }));
+  wrap.querySelectorAll('.delBtn').forEach(b=> b.addEventListener('click', ()=>{ if(confirm('Delete item?')){ catalog.splice(Number(b.dataset.idx),1); renderAdminTable(); } }));
+}
+
+/* export / import / clear */
+document.getElementById('exportJSON').addEventListener('click', ()=>{
+  const data = {catalog:catalog, shopPhone: localStorage.getItem(KEYS.SHOPPHONE)||'', logo: localStorage.getItem(KEYS.LOGO)||'', shopName: localStorage.getItem(KEYS.SHOPNAME)||''};
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'}); const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='varsi_export.json'; a.click();
+});
+document.getElementById('importJSON').addEventListener('click', ()=>{
+  const txt = prompt('Paste exported JSON here to import'); if(!txt) return;
+  try{ const parsed = JSON.parse(txt); if(parsed.catalog) catalog = parsed.catalog; if(parsed.shopPhone) localStorage.setItem(KEYS.SHOPPHONE, parsed.shopPhone); if(parsed.logo) localStorage.setItem(KEYS.LOGO, parsed.logo); if(parsed.shopName) localStorage.setItem(KEYS.SHOPNAME, parsed.shopName); renderAdminTable(); saveCatalog(); alert('Imported & saved locally'); }catch(e){ alert('Invalid JSON'); }
+});
+document.getElementById('clearLocal').addEventListener('click', ()=>{ if(confirm('Clear local data on this device?')){ localStorage.removeItem(KEYS.CATALOG); localStorage.removeItem(KEYS.SHOPPHONE); localStorage.removeItem(KEYS.LOGO); localStorage.removeItem(KEYS.SHOPNAME); location.reload(); } });
+
+/* escape helper */
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* init app */
+(function init(){
+  if(!localStorage.getItem(KEYS.PINSET)) localStorage.setItem(KEYS.PINSET, ADMIN_PIN);
+  loadCatalog();
+  const logoData = localStorage.getItem(KEYS.LOGO);
+  if(logoData){ document.getElementById('logoImg').src = logoData; document.getElementById('logoPreview').src = logoData; document.getElementById('logoPreview').style.display='block'; }
+  const shopName = localStorage.getItem(KEYS.SHOPNAME);
+  if(shopName) document.getElementById('shopName').innerText = shopName;
+  renderCustomerCatalog();
+})();
+</script>
+</body>
+</html>
